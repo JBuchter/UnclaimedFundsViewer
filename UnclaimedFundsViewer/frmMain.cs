@@ -64,12 +64,16 @@ namespace UnclaimedFundsViewer
         private void restartDatabaseService()
         {
             lblStatus.Text = "Restarting Database Service. Please wait...";
-            _svcController.Start();
-            while (true)
-            {
-                if (_svcController.Status == ServiceControllerStatus.Running)
-                    break;
-            }
+            ProcessStartInfo psi = new ProcessStartInfo("restartdbservice.exe");
+            psi.Arguments = "\"" + _dbServiceName + "\"";
+            psi.Verb = "runas";
+
+            var proc = new Process();
+            proc.StartInfo = psi;
+            proc.Start();
+            proc.WaitForExit();
+            if (!proc.ExitCode.Equals(0))
+                lblStatus.Text = "Could not restart DB service.";
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -107,9 +111,12 @@ namespace UnclaimedFundsViewer
                             where c.OwnerName.Contains(lastname)
                             select c.PropertyID).ToArray<string>();
 
+            if (address.ToLower().Equals("unknown"))
+                address = "NA";
+
             try
             {
-                if (address == "NA")
+                if (address.Equals("NA"))
                 {
                     
                     var query = (from c in _context.FindersLists
@@ -297,7 +304,7 @@ namespace UnclaimedFundsViewer
 
         private void bnSearch_Click(object sender, EventArgs e)
         {
-            if (txtSearch.Text == string.Empty) return;
+            if (string.IsNullOrEmpty(txtSearch.Text)) return;
             var address = "NA";
 
             if(dataGridViewDetail.SelectedRows.Count > 0)
@@ -430,7 +437,8 @@ namespace UnclaimedFundsViewer
 
         private void txtSearch_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == '\r')
+            dataGridViewDetail.ClearSelection();
+            if (e.KeyChar.Equals('\r'))
             {
                 if (txtSearch.Text.Count() > 0)
                 {
