@@ -45,7 +45,7 @@ class DataGridViewPrinter
         _column1.Y = e.MarginBounds.Top;
         _column2.X = e.MarginBounds.Left + e.MarginBounds.Width / 2;
         _column2.Y = e.MarginBounds.Top;
-
+        
         //Draw Header
         e.Graphics.DrawString(_headerText,
             _headerFont, Brushes.Black, _column1.X, _column1.Y - 20);
@@ -53,7 +53,9 @@ class DataGridViewPrinter
         //Draw Date
         e.Graphics.DrawString(DateTime.Now.ToLongDateString(),
            _headerFont, Brushes.Black, _column2.X, _column2.Y - 20);
-        
+
+        drawRow(e.Graphics);
+
         // reset Column Points
         _column1.Y += _cellHeight;
         _column2.Y += _cellHeight;
@@ -142,13 +144,17 @@ class DataGridViewPrinter
                 _column2.Y += 6;
 
                 // draw Date and Amount
-                var date = row.Cells["DateReceived"].Value ?? string.Empty;
+                var date = Convert.ToDateTime(row.Cells["DateReceived"].Value);
+                var dateFormatted = date.ToString("MM/dd/yyyy") ?? string.Empty;
                 var amount = row.Cells["Value"].FormattedValue ?? string.Empty;
-                formatted = string.Format("{0}     {1}",date,amount);
+                formatted = string.Format("{0}     {1}", dateFormatted, amount);
                 drawRow(e.Graphics, formatted);
 
                 // draw line
                 e.Graphics.DrawLine(_linePen, _column1.X, _column1.Y, 750, _column1.Y);
+
+                drawRow(e.Graphics);
+
                 rowsPrinted += 1;
             }
             _currentRow ++;
